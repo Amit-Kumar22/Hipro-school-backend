@@ -1,0 +1,7 @@
+name,fatherName,motherName,parentEmail,parentPhone,className,dob,address,pincode,gender
+Amit Kumar,Ramesh Kumar,Sita Devi,ramesh.kumar@example.com,9876543210,Class 1,2015-05-12,"12, Gandhi Nagar, Near City Mall",400001,MALE
+Priya Sharma,Anil Sharma,Rekha Sharma,anil.sharma@example.com,9876543211,Class 1,12/05/2015,45 MG Road,400002,FEMALE
+Rohan Verma,Suresh Verma,Kavita Verma,suresh.verma@example.com,9876543212,Class 2,2014-09-01,"Flat 302, Sunrise Apartments, Sector 12",400003,M
+Ananya Iyer,Rajesh Iyer,Lakshmi Iyer,rajesh.iyer@example.com,9876543213,Class 2,05-03-2015,7 Park Street,400004,FEMALE
+Kabir Singh,Manjit Singh,Simran Singh,manjit.singh@example.com,9876543214,Class 3,2013-11-20,221B Lotus Colony,400005,OTHER
+Sara Ali,Imran Ali,Nadia Ali,imran.ali@example.com,9876543215,Class 3,18/07/2014,9 Lake View Road,400006,FEMALE

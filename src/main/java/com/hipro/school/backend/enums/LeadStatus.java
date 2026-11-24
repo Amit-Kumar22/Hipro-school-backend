@@ -1,0 +1,7 @@
+package com.hipro.school.backend.enums;
+
+public enum LeadStatus {
+
+	NEW, CONTACTED, INTERESTED, FOLLOW_UP, DEMO_SCHEDULED, DEMO_COMPLETED, NEGOTIATION, CONVERTED, NOT_INTERESTED,
+	CLOSED
+}

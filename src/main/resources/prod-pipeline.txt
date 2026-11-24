@@ -1,0 +1,195 @@
+PM2 Service
+pipeline {
+    agent any
+
+    environment {
+        SERVER_IP = '178.16.137.161'
+
+        // Repositories
+        FRONTEND_REPO = 'git@github.com:upendra-rai/weeky-travel-portal-front-ent.git'
+        FRONTEND_BRANCH = 'main'
+
+        // Deployment
+        FRONTEND_PATH = '/app/frontend'
+        FRONTEND_APP_NAME = 'weeky-frontend'   // PM2 process name
+
+        // Jenkins credentials IDs
+        GITHUB_CREDENTIALS = 'github-ssh-key'
+        SERVER_CREDENTIALS = 'prod-deploy-key'
+    }
+
+    stages {
+
+        stage('Checkout & Build') {
+            steps {
+                cleanWs()
+                dir('frontend') {
+                    git branch: "${env.FRONTEND_BRANCH}", url: "${env.FRONTEND_REPO}", credentialsId: "${env.GITHUB_CREDENTIALS}"
+
+                    sh '''
+                        npm install --legacy-peer-deps
+                        npm run build
+                    '''
+                }
+            }
+        }
+
+        stage('Upload & Deploy') {
+            steps {
+                script {
+                    sshagent([env.SERVER_CREDENTIALS]) {
+                        sh """
+                            echo "Uploading frontend build to server..."
+                            rsync -avz --delete frontend/.next frontend/package.json frontend/public ubuntu@${env.SERVER_IP}:/tmp/frontend/
+
+                            ssh -o StrictHostKeyChecking=no ubuntu@${env.SERVER_IP} '
+                                set -e
+                                
+                                echo "Deploying frontend with PM2..."
+                                mkdir -p ${env.FRONTEND_PATH}
+                                rsync -avz --delete /tmp/frontend/ ${env.FRONTEND_PATH}/
+
+                                cd ${env.FRONTEND_PATH}
+
+                                # Ensure dependencies are installed
+                                npm install --production --legacy-peer-deps
+
+                                # Start/Restart app using PM2
+                                pm2 delete ${env.FRONTEND_APP_NAME} || true
+                                pm2 start npm --name "${env.FRONTEND_APP_NAME}" -- run start -- -p 3000
+
+                                # Save PM2 process list
+                                pm2 save
+
+                                echo "✅ Frontend deployed & running with PM2!"
+                            '
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            echo "Frontend deployment failed. Check logs above for details."
+        }
+        success {
+            echo "Frontend deployment completed successfully with PM2!"
+        }
+    }
+}
+
+
+
+
+========= SystemFile : prod-pipeline.txt ============
+sudo nano /etc/systemd/system/weeky-frontend.service
+
+[Unit]
+Description=Weeky Frontend (Next.js)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/app/frontend
+ExecStart=/usr/bin/npm run start -- -p 3000
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+
+
+pipeline {
+    agent any
+
+    environment {
+        SERVER_IP = '178.16.137.161'
+
+        // Repositories
+        FRONTEND_REPO = 'git@github.com:upendra-rai/weeky-travel-portal-front-ent.git'
+        FRONTEND_BRANCH = 'main'
+
+        // Deployment
+        FRONTEND_PATH = '/app/frontend'
+        SYSTEMD_SERVICE = 'weeky-frontend.service'
+
+        // Jenkins credentials IDs
+        GITHUB_CREDENTIALS = 'github-ssh-key'
+        SERVER_CREDENTIALS = 'prod-deploy-key'
+    }
+
+    stages {
+
+        stage('Checkout & Build') {
+            steps {
+                cleanWs()
+                dir('frontend') {
+                    git branch: "${env.FRONTEND_BRANCH}",
+                        url: "${env.FRONTEND_REPO}",
+                        credentialsId: "${env.GITHUB_CREDENTIALS}"
+
+                    sh '''
+                        npm install --legacy-peer-deps
+                        npm run build
+                    '''
+                }
+            }
+        }
+
+        stage('Upload & Deploy') {
+            steps {
+                script {
+                    sshagent([env.SERVER_CREDENTIALS]) {
+                        sh """
+                            echo "Uploading frontend build to server..."
+
+                            rsync -avz --delete \
+                              frontend/.next \
+                              frontend/public \
+                              frontend/package.json \
+                              frontend/package-lock.json \
+                              ubuntu@${env.SERVER_IP}:/tmp/frontend/
+
+                            ssh -o StrictHostKeyChecking=no ubuntu@${env.SERVER_IP} '
+                                set -e
+
+                                echo "Deploying frontend using systemd..."
+
+                                sudo mkdir -p ${env.FRONTEND_PATH}
+                                sudo rsync -avz --delete /tmp/frontend/ ${env.FRONTEND_PATH}/
+                                sudo chown -R ubuntu:ubuntu ${env.FRONTEND_PATH}
+
+                                cd ${env.FRONTEND_PATH}
+
+                                npm install --production --legacy-peer-deps
+
+                                echo "Restarting systemd service..."
+                                sudo systemctl daemon-reload
+                                sudo systemctl restart ${env.SYSTEMD_SERVICE}
+                                sudo systemctl status ${env.SYSTEMD_SERVICE} --no-pager
+
+                                echo "✅ Frontend deployed & running via systemd!"
+                            '
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            echo "Frontend deployment failed. Check Jenkins logs."
+        }
+        success {
+            echo "Frontend deployment completed successfully using systemd!"
+        }
+    }
+}
+
+
+

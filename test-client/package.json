@@ -1,0 +1,11 @@
+{
+  "name": "websocket-test-client",
+  "version": "1.0.0",
+  "description": "Test client for School WebSocket Messaging API",
+  "scripts": {
+    "start": "npx serve . -p 8080 -s --no-clipboard",
+    "open": "npx serve . -p 8080 -s --no-clipboard && open http://localhost:8080"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
