@@ -40,7 +40,7 @@ public class SecurityConfiguration {
 
 	private static final String[] WHITE_LIST_URL = { "/v1/auth/**", "/v2/api-docs","/v1/free/**", "/v3/api-docs","/api/upload/**","/health",
 			"/v1/website-content/**", "/v3/api-docs/**", "/swagger-resources", "/swagger-resources/**", "/configuration/ui",
-			"/configuration/security", "/swagger-ui/**", "/webjars/**", "/swagger-ui.html", "/ws", "/ws/**" };
+			"/configuration/security", "/swagger-ui/**", "/webjars/**", "/swagger-ui.html", "/ws", "/ws/**", "/uploads/**" };
 	
 	private final JwtAuthenticationFilter jwtAuthFilter;
 	
